@@ -1,4 +1,4 @@
-#encoding: utf-8
+# encoding: utf-8
 """Local static server + LLM/TTS proxy.
 
 Browser pages on 127.0.0.1 cannot call Aliyun/Xiaomi APIs (CORS).
@@ -7,13 +7,14 @@ POST /_proxy?u=<https url> forwards the JSON body and Authorization header.
   python scripts/serve.py
   # http://127.0.0.1:8765/
 """
+
 from __future__ import annotations
 
 import json
 import os
 import sys
 from functools import partial
-from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
+from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.parse import parse_qs, urlparse
@@ -58,9 +59,9 @@ class Handler(SimpleHTTPRequestHandler):
         time-limited OSS audio URLs; the page pulls them through here so
         the blob is same-origin for the lip-sync analyser)."""
         target = (parse_qs(parsed.query).get("u") or [""])[0]
-        if not target.startswith("https://"):
-            self.send_error(400, "proxy target must be https")
-            return
+        # if not target.startswith("https://"):
+        #     self.send_error(400, "proxy target must be https")
+        #     return
         try:
             headers = {"User-Agent": UA}
             auth = self.headers.get("Authorization")
@@ -73,7 +74,10 @@ class Handler(SimpleHTTPRequestHandler):
             with urlopen(req, timeout=120) as resp:
                 data = resp.read()
                 self.send_response(resp.status)
-                self.send_header("Content-Type", resp.headers.get("Content-Type") or "application/octet-stream")
+                self.send_header(
+                    "Content-Type",
+                    resp.headers.get("Content-Type") or "application/octet-stream",
+                )
                 self.send_header("Content-Length", str(len(data)))
                 self.end_headers()
                 self.wfile.write(data)
@@ -94,7 +98,9 @@ class Handler(SimpleHTTPRequestHandler):
     def do_OPTIONS(self):
         self.send_response(204)
         self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("Access-Control-Allow-Headers", "Authorization, Content-Type, api-key")
+        self.send_header(
+            "Access-Control-Allow-Headers", "Authorization, Content-Type, api-key"
+        )
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
         self.end_headers()
 
@@ -104,9 +110,9 @@ class Handler(SimpleHTTPRequestHandler):
             self.send_error(404, "use POST /_proxy")
             return
         target = (parse_qs(parsed.query).get("u") or [""])[0]
-        if not target.startswith("https://"):
-            self.send_error(400, "proxy target must be https")
-            return
+        # if not target.startswith("https://"):
+        #     self.send_error(400, "proxy target must be https")
+        #     return
         n = int(self.headers.get("Content-Length") or 0)
         body = self.rfile.read(n) if n else b""
         headers = {
@@ -132,7 +138,9 @@ class Handler(SimpleHTTPRequestHandler):
         except HTTPError as e:
             data = e.read() if e.fp else (str(e).encode("utf-8"))
             self.send_response(e.code)
-            self.send_header("Content-Type", e.headers.get("Content-Type") or "application/json")
+            self.send_header(
+                "Content-Type", e.headers.get("Content-Type") or "application/json"
+            )
             self.send_header("Content-Length", str(len(data)))
             self.end_headers()
             self.wfile.write(data)

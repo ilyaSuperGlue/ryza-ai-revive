@@ -34,8 +34,8 @@ class Server(ThreadingHTTPServer):
 
 
 class Handler(SimpleHTTPRequestHandler):
-    def log_message(self, fmt, *args):
-        sys.stderr.write("[%s] %s\n" % (self.log_date_time_string(), fmt % args))
+    def log_message(self, fmt, *args):  # pyright: ignore[reportIncompatibleMethodOverride]
+        sys.stderr.write("[%s] %s\n" % (self.log_date_time_string(), fmt % args))  # noqa: UP031
 
     def do_GET(self):
         parsed = urlparse(self.path)
@@ -59,9 +59,12 @@ class Handler(SimpleHTTPRequestHandler):
         time-limited OSS audio URLs; the page pulls them through here so
         the blob is same-origin for the lip-sync analyser)."""
         target = (parse_qs(parsed.query).get("u") or [""])[0]
-        # if not target.startswith("https://"):
-        #     self.send_error(400, "proxy target must be https")
-        #     return
+        print(target)
+        if not target.startswith("https://") and (
+            "localhost" not in target and "127.0.0.1" not in target
+        ):
+            self.send_error(400, "proxy target must be https")
+            return
         try:
             headers = {"User-Agent": UA}
             auth = self.headers.get("Authorization")
@@ -110,9 +113,11 @@ class Handler(SimpleHTTPRequestHandler):
             self.send_error(404, "use POST /_proxy")
             return
         target = (parse_qs(parsed.query).get("u") or [""])[0]
-        # if not target.startswith("https://"):
-        #     self.send_error(400, "proxy target must be https")
-        #     return
+        if not target.startswith("https://") and (
+            "localhost" not in target and "127.0.0.1" not in target
+        ):
+            self.send_error(400, "proxy target must be https")
+            return
         n = int(self.headers.get("Content-Length") or 0)
         body = self.rfile.read(n) if n else b""
         headers = {

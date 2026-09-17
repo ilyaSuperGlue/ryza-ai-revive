@@ -109,7 +109,7 @@
 
     /* ---- presentation ---- */
     app: {
-      lang: 'zh',                    // zh | zh-tw | ja | en | hi | id | pt-br
+      lang: 'en',                    // zh | zh-tw | ja | en | hi | id | pt-br
       voice: true,
       volume: 0.9,
       textSpeed: 30,                 // ms per character (×1; see TEXT_SPEEDS)

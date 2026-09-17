@@ -172,10 +172,6 @@ public final class AssetServer extends Thread {
                 off += n;
             }
         }
-        if (!target.startsWith("https://")) {
-            write(out, 400, "application/json", "{\"error\":{\"message\":\"proxy target must be https\"}}");
-            return;
-        }
         try {
             HttpURLConnection up = (HttpURLConnection) new URL(target).openConnection();
             up.setRequestMethod("POST");
@@ -215,10 +211,6 @@ public final class AssetServer extends Thread {
                     target = URLDecoder.decode(kv.substring(e + 1), "UTF-8");
                 }
             }
-        }
-        if (!target.startsWith("https://")) {
-            write(out, 400, "application/json", "{\"error\":{\"message\":\"proxy target must be https\"}}");
-            return;
         }
         try {
             HttpURLConnection up = (HttpURLConnection) new URL(target).openConnection();
